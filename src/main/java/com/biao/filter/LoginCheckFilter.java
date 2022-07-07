@@ -1,6 +1,7 @@
 package com.biao.filter;
 
 import com.alibaba.fastjson.JSON;
+import com.biao.common.BaseContext;
 import com.biao.common.ResponseResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.AntPathMatcher;
@@ -39,12 +40,14 @@ public class LoginCheckFilter implements Filter {
             return;
         }
         HttpSession session = request.getSession();
-        Object employee = session.getAttribute("employee");
+        Long employee = (Long)session.getAttribute("employee");
         if (employee == null) {
             response.getWriter().write(JSON.toJSONString(ResponseResult.error("NOTLOGIN")));
             return;
         }
-        log.info("object{}", employee);
+//        log.info("线程id:{}",Thread.currentThread().getId());
+        //一个请求一个线程，线程具有隔离性
+        BaseContext.setCurrentId(employee);
         filterChain.doFilter(request, response);
 
 

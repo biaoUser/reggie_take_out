@@ -52,28 +52,15 @@ public class EmployeeController {
     @PostMapping
     public ResponseResult save(@RequestBody Employee employee, HttpSession session) {
         log.info("新增员工");
+        log.info("线程id:{}",Thread.currentThread().getId());
         employee.setPassword(DigestUtils.md5DigestAsHex("123".getBytes()));
-        employee.setCreateTime(LocalDateTime.now());
-        employee.setUpdateTime(LocalDateTime.now());
-        employee.setCreateUser((Long) session.getAttribute("employee"));
-        employee.setUpdateUser((Long) session.getAttribute("employee"));
+//        employee.setCreateTime(LocalDateTime.now());
+//        employee.setCreateUser((Long) session.getAttribute("employee"));
+//        employee.setUpdateTime(LocalDateTime.now());
+//        employee.setUpdateUser((Long) session.getAttribute("employee"));
         employeeService.save(employee);
         return ResponseResult.success("新增员工成功");
     }
-
-//    @GetMapping("/page/{page}/{pageSize}/{name}")
-//    public ResponseResult page(@PathVariable("page") Integer page,
-//                               @PathVariable("pageSize") Integer pageSize,
-//                               @PathVariable("name") String name) {
-//        log.info("page={}", page);
-//        log.info("pageSize={}", pageSize);
-//        log.info("name={}", name);
-//        IPage p = new Page<Employee>(page, pageSize);
-//        QueryWrapper<Employee> wrapper = new QueryWrapper<>();
-//        wrapper.like("username", name);
-//        IPage iPage = employeeService.page(p, wrapper);
-//        return ResponseResult.success(iPage);
-//    }
 
     @GetMapping("/page")
     public ResponseResult page1(@RequestParam("page") Integer page,
@@ -87,10 +74,44 @@ public class EmployeeController {
         log.info("name={}", name);
         IPage p = new Page<Employee>(page, pageSize);
         QueryWrapper<Employee> wrapper = new QueryWrapper<>();
-        wrapper.like(StringUtils.isNotEmpty(name),"username", name);
+        wrapper.like(StringUtils.isNotEmpty(name), "username", name);
         wrapper.orderByDesc("update_time");
         IPage iPage = employeeService.page(p, wrapper);
         return ResponseResult.success(iPage);
 
     }
+
+    //更改状态和更改基本信息
+    @PutMapping
+    public ResponseResult updateStatusByEmployeeId(@RequestBody Employee employee, HttpSession session) {
+        //管理员不能被禁用
+        if (employee.getId() == 1) {
+            return ResponseResult.error("管理员账号不可以禁用");
+        }
+        employee.setUpdateTime(LocalDateTime.now());
+        employee.setUpdateUser((Long) session.getAttribute("employee"));
+        employeeService.updateById(employee);
+        return ResponseResult.success("操作成功");
+
+    }
+
+    /**
+     * 前端接口
+     * function queryEmployeeById (id) {
+     * return $axios({
+     * url: `/employee/${id}`,
+     * method: 'get'
+     * })
+     * }
+     */
+    @GetMapping("/{id}")
+    public ResponseResult queryEmployeeById(@PathVariable("id") Long id) {
+        Employee employee = employeeService.getById(id);
+        if (employee != null)
+            return ResponseResult.success(employee);
+
+        return ResponseResult.error("没找到对应员工");
+    }
+
+
 }
