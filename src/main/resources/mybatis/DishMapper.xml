@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.biao.mapper.DishMapper">
+    <resultMap id="getOneDishVoPojo" type="com.biao.entity.vo.DishVo">
+        <id column="id" property="id"></id>
+        <result column="name" property="name"></result>
+        <result column="category_id" property="categoryId"></result>
+        <result column="price" property="price"></result>
+        <result column="code" property="code"></result>
+        <result column="image" property="image"></result>
+        <result column="description" property="description"></result>
+        <result column="status" property="status"></result>
+        <result column="sort" property="sort"></result>
+        <collection property="flavors" ofType="com.biao.entity.DishFlavor">
+            <id column="dfId" property="id"></id>
+            <result column="dfDishId" property="dishId"></result>
+            <result column="deName" property="name"></result>
+            <result column="value" property="value"></result>
+        </collection>
+    </resultMap>
+    <update id="updateStatus">
+        update dish set status=#{status} where id=#{id}
+    </update>
+
+    <select id="page" resultType="com.biao.entity.vo.DishVo">
+        select d.id,
+        d.`name`,
+        d.price,
+        d.image,
+        d.description,
+        d.`status`,
+        d.sort,
+        d.create_time createTime,
+        d.create_user createUser,
+        d.update_user updateUser,
+        d.update_time updateTime,
+        d.is_deleted,
+        c.`name` categoryName
+        from dish d
+        JOIN category c on d.category_id = c.id
+        <if test="name!=null and name!=''">
+            where `name` like "%"#{name}"%"
+        </if>
+        order by d.update_time desc
+    </select>
+    <select id="getOneDishVo" resultMap="getOneDishVoPojo">
+        select d.id,
+               d.`name`,
+               d.category_id,
+               d.price,
+               d.`code`,
+               d.image,
+               d.`status`,
+               d.sort,
+               d.description,
+               df.id      as dfId,
+               df.name    as dfName,
+               df.`value`,
+               df.dish_id as dfDishId
+
+        from dish d
+             left    JOIN dish_flavor df on d.id = df.dish_id
+        where d.id=#{id}
+    </select>
+</mapper>

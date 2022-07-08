@@ -10,6 +10,9 @@ import com.biao.service.CategoryService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
 //种类
 @RestController
 @Slf4j
@@ -36,8 +39,17 @@ public class CategoryController {
     }
     @DeleteMapping
     public ResponseResult remove(@RequestParam("ids")Long ids){
-        categoryService.removeById(ids);
+        categoryService.remove(ids);
         return ResponseResult.success("删除成功");
 
+    }
+    //菜品管理获取分类列表管理
+    @GetMapping("/list")
+    public ResponseResult list(@RequestParam("type")Integer type){
+        QueryWrapper<Category> wrapper=new QueryWrapper<>();
+        wrapper.eq("type",type);
+        wrapper.orderByAsc("sort").orderByAsc("update_time");
+        List<Category> list = categoryService.list(wrapper);
+        return ResponseResult.success(list);
     }
 }
