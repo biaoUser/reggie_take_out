@@ -14,7 +14,7 @@ import java.sql.SQLIntegrityConstraintViolationException;
 @ResponseBody
 @Slf4j
 public class GlobalExceptionHandler {
-    //
+    //违反唯一约束
     @ExceptionHandler(SQLIntegrityConstraintViolationException.class)
     public ResponseResult exception(SQLIntegrityConstraintViolationException e){
         log.info(e.getMessage());
@@ -23,5 +23,10 @@ public class GlobalExceptionHandler {
             return ResponseResult.error(s[2]+"已存在");
         }
         return ResponseResult.error("失败");
+    }
+    @ExceptionHandler(CustoException.class)
+    public ResponseResult exception(CustoException e){
+
+        return ResponseResult.error(e.getMessage());
     }
 }
