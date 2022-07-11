@@ -1,5 +1,6 @@
 package com.biao.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.biao.common.ResponseResult;
 import com.biao.entity.Dish;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
+import java.util.List;
 
 
 @Slf4j
@@ -77,4 +79,17 @@ public class DishController {
         dishService.updateStatus(ids,type);
         return ResponseResult.success("修改成功");
     }
+
+    @GetMapping("/list")
+    public ResponseResult list( Dish dish){
+//        log.info("dish={}",dish.toString());
+        QueryWrapper<Dish> wrapper=new QueryWrapper<>();
+        wrapper.eq(dish.getCategoryId()!=null,"category_id",dish.getCategoryId());
+        wrapper.eq("status",1);
+        wrapper.orderByAsc("sort").orderByDesc("update_time");
+        List<Dish> list = dishService.list(wrapper);
+
+        return ResponseResult.success(list);
+    }
+
 }

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.biao.mapper.SetmealMapper">
+    <resultMap id="setmealVoPagePojo" type="com.biao.entity.vo.SetmealVo">
+        <id column="id" property="id"></id>
+        <result column="category_id" property="categoryId"></result>
+        <result column="name" property="name"></result>
+        <result column="price" property="price"></result>
+        <result column="status" property="status"></result>
+        <result column="image" property="image"></result>
+        <result column="update_time" property="updateTime"></result>
+        <result column="categoryName" property="categoryName"></result>
+    </resultMap>
+    <resultMap id="setmealVoList" type="com.biao.entity.vo.SetmealVo">
+        <id column="id" property="id"></id>
+        <result column="description" property="description"></result>
+        <result column="category_id" property="categoryId"></result>
+        <result column="name" property="name"></result>
+        <result column="price" property="price"></result>
+        <result column="status" property="status"></result>
+        <result column="image" property="image"></result>
+        <collection property="setmealDishes" ofType="com.biao.entity.SetmealDish">
+            <id column="sid" property="id"></id>
+            <result column="setmealId" property="setmealId"></result>
+            <result column="dishId" property="dishId"></result>
+            <result column="sName" property="name"></result>
+            <result column="sPrice" property="price"></result>
+            <result column="copies" property="copies"></result>
+        </collection>
+    </resultMap>
+    <select id="setmealVoPage" resultMap="setmealVoPagePojo">
+        select s.id,
+        s.category_id,
+        s.`name`,
+        s.price,
+        s.`status`,
+        s.image,
+        s.update_time,
+        c.`name` categoryName
+        from setmeal s
+        join
+        category c
+        on
+        s.category_id = c.id
+        <if test="name!=null and name!=''">
+            where s.`name` like "%"#{name}"%"
+        </if>
+
+    </select>
+    <select id="getSetmealVo" resultMap="setmealVoList">
+        select s.id,
+               s.category_id,
+               s.`name`,
+               s.price,
+               s.`status`,
+               s.image,
+               s.update_time,
+               s.description ,
+               sd.id         sid,
+               sd.`name`     sName,
+               sd.price      sPrice,
+               sd.copies,
+               sd.dish_id    dishId,
+               sd.setmeal_id setmealId
+        from setmeal s
+                 join
+             setmeal_dish sd
+             on
+                 s.id = sd.setmeal_id
+        where s.id = #{id}
+    </select>
+</mapper>

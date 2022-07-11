@@ -12,6 +12,7 @@ import com.biao.mapper.DishMapper;
 import com.biao.service.CategoryService;
 import com.biao.service.DishFlavorService;
 import com.biao.service.DishService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
+@Slf4j
 @Service
 public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements DishService {
     @Autowired
@@ -31,7 +32,9 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
     @Transactional
     @Override
     public void saveWithFlavor(DishVo dishVo) {
-        this.save(dishVo);
+        log.info("dishVo.getId()={}",dishVo.getId());
+        this.save(dishVo);//mybatis-plus主键策略
+        log.info("dishVo.getId()={}",dishVo.getId());
         Long dishVoId = dishVo.getId();
         List<DishFlavor> flavors = dishVo.getFlavors();
 //        flavors = flavors.stream().map(dishFlavor -> {
