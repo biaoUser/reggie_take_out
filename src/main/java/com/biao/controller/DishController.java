@@ -4,12 +4,16 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.biao.common.ResponseResult;
 import com.biao.entity.Dish;
+import com.biao.entity.DishFlavor;
 import com.biao.entity.vo.DishVo;
+import com.biao.service.DishFlavorService;
 import com.biao.service.DishService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -20,7 +24,8 @@ import java.util.List;
 public class DishController {
     @Autowired
     private DishService dishService;
-
+    @Autowired
+    DishFlavorService dishFlavorService;
 
     @PostMapping
     public ResponseResult addDish(@RequestBody DishVo dishVo) {
@@ -76,20 +81,29 @@ public class DishController {
     @PostMapping("/status/{type}")
     public ResponseResult updateStatus(@RequestParam("ids") String ids, @PathVariable("type") String type) {
         //方式1手写sql
-        dishService.updateStatus(ids,type);
+        dishService.updateStatus(ids, type);
         return ResponseResult.success("修改成功");
     }
 
     @GetMapping("/list")
-    public ResponseResult list( Dish dish){
+    public ResponseResult list(Dish dish) {
 //        log.info("dish={}",dish.toString());
-        QueryWrapper<Dish> wrapper=new QueryWrapper<>();
-        wrapper.eq(dish.getCategoryId()!=null,"category_id",dish.getCategoryId());
-        wrapper.eq("status",1);
+        QueryWrapper<Dish> wrapper = new QueryWrapper<>();
+        wrapper.eq(dish.getCategoryId() != null, "category_id", dish.getCategoryId());
+        wrapper.eq("status", 1);
         wrapper.orderByAsc("sort").orderByDesc("update_time");
         List<Dish> list = dishService.list(wrapper);
-
-        return ResponseResult.success(list);
+        List<DishVo> l = new ArrayList<>();
+        list.stream().forEach(item -> {
+            QueryWrapper<DishFlavor> w=new QueryWrapper<>();
+            w.eq("dish_id",item.getId());
+            List<DishFlavor> list1 = dishFlavorService.list(w);
+            DishVo dishVo=new DishVo();
+            BeanUtils.copyProperties(item,dishVo);
+            dishVo.setFlavors(list1);
+            l.add(dishVo);
+        });
+        return ResponseResult.success(l);
     }
 
 }

@@ -47,11 +47,13 @@ public class LoginCheckFilter implements Filter {
         if (employee != null) {
             BaseContext.setCurrentId(employee);
             filterChain.doFilter(request, response);
+            return;
         }
         Long userId = (Long) session.getAttribute("user");
         if (userId != null) {
             BaseContext.setCurrentId(userId);
             filterChain.doFilter(request, response);
+            return;
         }
 //        log.info("线程id:{}",Thread.currentThread().getId());
         //一个请求一个线程，线程具有隔离性
