@@ -23,7 +23,7 @@ public class LoginCheckFilter implements Filter {
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
-        log.info("拦截的路径{}",request.getRequestURI());
+        log.info("拦截的路径{}", request.getRequestURI());
         String uri = request.getRequestURI();
         //无需处理的路径
         String[] urls = new String[]{
@@ -31,7 +31,9 @@ public class LoginCheckFilter implements Filter {
                 "/employee/logout",
                 "/backend/**",
                 "/front/**",
-                "/common/**"
+                "/common/**",
+                "/user/sendMsg",
+                "/user/login"
         };
 
 
@@ -41,16 +43,20 @@ public class LoginCheckFilter implements Filter {
             return;
         }
         HttpSession session = request.getSession();
-        Long employee = (Long)session.getAttribute("employee");
-        if (employee == null) {
-            response.getWriter().write(JSON.toJSONString(ResponseResult.error("NOTLOGIN")));
-            return;
+        Long employee = (Long) session.getAttribute("employee");
+        if (employee != null) {
+            BaseContext.setCurrentId(employee);
+            filterChain.doFilter(request, response);
+        }
+        Long userId = (Long) session.getAttribute("user");
+        if (userId != null) {
+            BaseContext.setCurrentId(userId);
+            filterChain.doFilter(request, response);
         }
 //        log.info("线程id:{}",Thread.currentThread().getId());
         //一个请求一个线程，线程具有隔离性
-        BaseContext.setCurrentId(employee);
-        filterChain.doFilter(request, response);
-
+        response.getWriter().write(JSON.toJSONString(ResponseResult.error("NOTLOGIN")));
+        return;
 
     }
 

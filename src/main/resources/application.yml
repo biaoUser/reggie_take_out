@@ -20,3 +20,5 @@ mybatis-plus:
   mapper-locations: classpath:mybatis/*.xml
 takeout:
   path: D:\project5\image\
+email:
+  password: jstfdmncgnodddhb
