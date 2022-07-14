@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -19,6 +20,22 @@ import java.util.List;
 public class ShoppingCartController {
     @Autowired
     private ShoppingCartService shoppingCartService;
+
+    @PostMapping("/sub")
+    public ResponseResult sub(@RequestBody Map<String,Long>map) {
+        Long dishId = map.get("dishId");
+        Long userId = BaseContext.getCurrentId();
+        QueryWrapper<ShoppingCart>wrapper=new QueryWrapper<>();
+        wrapper.eq("dish_id",dishId).eq("user_id",userId);
+        ShoppingCart cart = shoppingCartService.getOne(wrapper);
+        if (cart!=null&&cart.getNumber()>0){
+            cart.setNumber(cart.getNumber()-1);
+            shoppingCartService.updateById(cart);
+            return ResponseResult.success(cart);
+        }
+
+        return ResponseResult.error("失败了");
+    }
 
     @PostMapping("/add")
     public ResponseResult add(@RequestBody ShoppingCart shoppingCart) {
@@ -37,7 +54,7 @@ public class ShoppingCartController {
                 shoppingCart.setNumber(1);
                 shoppingCart.setCreateTime(LocalDateTime.now());
                 shoppingCartService.save(shoppingCart);
-                shop=shoppingCart;
+                shop = shoppingCart;
                 return ResponseResult.success(shop);
             }
             shop.setCreateTime(LocalDateTime.now());
@@ -51,7 +68,7 @@ public class ShoppingCartController {
             if (shop == null) {
                 shoppingCart.setNumber(1);
                 shoppingCartService.save(shoppingCart);
-                shop=shoppingCart;
+                shop = shoppingCart;
                 return ResponseResult.success(shop);
             }
             shop.setNumber(shop.getNumber() + 1);
@@ -63,14 +80,15 @@ public class ShoppingCartController {
 
     /**
      * 查看购物车
+     *
      * @return
      */
     @GetMapping("/list")
-    public ResponseResult<List<ShoppingCart>> list(){
+    public ResponseResult<List<ShoppingCart>> list() {
         log.info("查看购物车...");
 
         LambdaQueryWrapper<ShoppingCart> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(ShoppingCart::getUserId,BaseContext.getCurrentId());
+        queryWrapper.eq(ShoppingCart::getUserId, BaseContext.getCurrentId());
         queryWrapper.orderByAsc(ShoppingCart::getCreateTime);
 
         List<ShoppingCart> list = shoppingCartService.list(queryWrapper);
@@ -80,14 +98,15 @@ public class ShoppingCartController {
 
     /**
      * 清空购物车
+     *
      * @return
      */
     @DeleteMapping("/clean")
-    public ResponseResult<String> clean(){
+    public ResponseResult<String> clean() {
         //SQL:delete from shopping_cart where user_id = ?
 
         LambdaQueryWrapper<ShoppingCart> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(ShoppingCart::getUserId,BaseContext.getCurrentId());
+        queryWrapper.eq(ShoppingCart::getUserId, BaseContext.getCurrentId());
 
         shoppingCartService.remove(queryWrapper);
 

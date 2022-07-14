@@ -35,6 +35,12 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Orders> implement
     @Autowired
     private OrderDetailService orderDetailService;
 
+    @Override
+    public Orders getOneByNewOrder(Long userId) {
+
+        return  baseMapper.getOneByNewOrder(userId);
+    }
+
     /**
      * 用户下单
      *

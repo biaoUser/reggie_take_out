@@ -23,6 +23,20 @@ public class AddressBookController {
     @Autowired
     private AddressBookService addressBookService;
 
+    @DeleteMapping
+    public ResponseResult delete(@RequestParam("ids")Long ids){
+        addressBookService.removeById(ids);
+        return ResponseResult.success("删除成功");
+    }
+
+    @PutMapping
+    public ResponseResult update(@RequestBody AddressBook addressBook){
+        addressBookService.updateById(addressBook);
+
+        return ResponseResult.success("success");
+
+    }
+
     /**
      * 新增
      */
