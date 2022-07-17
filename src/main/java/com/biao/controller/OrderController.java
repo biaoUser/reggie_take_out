@@ -12,14 +12,12 @@ import com.biao.entity.vo.OrdersVo;
 import com.biao.service.OrderDetailService;
 import com.biao.service.OrderService;
 import com.biao.service.ShoppingCartService;
-import com.sun.org.apache.xpath.internal.operations.Or;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.beans.Beans;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -73,7 +71,7 @@ public class OrderController {
     @GetMapping("/userPage")
     public ResponseResult userPage(Integer page, Integer pageSize) {
         Long userId = BaseContext.getCurrentId();
-        IPage<OrdersVo> voIPage=new Page<>();
+        IPage<OrdersVo> voIPage = new Page<>();
         QueryWrapper<Orders> wrapper = new QueryWrapper<>();
         //找最近最新的订单
         if (pageSize.equals(1) || pageSize == 1) {
@@ -84,11 +82,11 @@ public class OrderController {
             wrapper.eq("user_id", userId);
             IPage<Orders> ordersIPage = orderService.page(p, wrapper);
             Orders orders = ordersIPage.getRecords().get(0);
-            OrdersVo vo=new OrdersVo();
-            BeanUtils.copyProperties(orders,vo);
+            OrdersVo vo = new OrdersVo();
+            BeanUtils.copyProperties(orders, vo);
             List<OrderDetail> orderDetails = orderDetailService.list(new QueryWrapper<OrderDetail>().eq("order_id", vo.getId()));
             vo.setOrderDetails(orderDetails);
-            BeanUtils.copyProperties(ordersIPage,voIPage,"records");
+            BeanUtils.copyProperties(ordersIPage, voIPage, "records");
             ArrayList<OrdersVo> ordersVos = new ArrayList<>();
             ordersVos.add(vo);
             voIPage.setRecords(ordersVos);
@@ -99,7 +97,7 @@ public class OrderController {
         IPage<Orders> p = new Page<>(page, pageSize);
         wrapper.eq("user_id", userId);
         IPage<Orders> ordersIPage = orderService.page(p, wrapper);
-        BeanUtils.copyProperties(ordersIPage,voIPage,"records");
+        BeanUtils.copyProperties(ordersIPage, voIPage, "records");
         List<Orders> records = ordersIPage.getRecords();
         List<OrdersVo> voList = records.stream().map(item -> {
             Long id = item.getId();
