@@ -11,11 +11,14 @@ import com.biao.service.DishService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -26,6 +29,9 @@ public class DishController {
     private DishService dishService;
     @Autowired
     DishFlavorService dishFlavorService;
+
+    @Autowired
+    RedisTemplate redisTemplate;
 
     @PostMapping
     public ResponseResult addDish(@RequestBody DishVo dishVo) {
@@ -59,7 +65,15 @@ public class DishController {
 
     @PutMapping
     public ResponseResult update(@RequestBody DishVo dishVo) {
+        //更新菜品后删除redis缓存
+        //获取所有以dish_开头的键
+        Set keys = redisTemplate.keys("dish_*");
+        //删除所有
+        redisTemplate.delete(keys);
 
+        //删除指定的redis缓存
+        String key="dish_"+dishVo.getCategoryId()+"_1";
+        redisTemplate.delete(key);
         dishService.updateWithFlavor(dishVo);
 
         return ResponseResult.success("修改成功");
@@ -87,22 +101,31 @@ public class DishController {
 
     @GetMapping("/list")
     public ResponseResult list(Dish dish) {
+        List<DishVo> l = null;
+        //准备redis中的key
+        String key = "dish_" + dish.getCategoryId() + "_" + dish.getStatus();
+        //先查询redis中是否缓存
+        l = (List<DishVo>) redisTemplate.opsForValue().get(key);
+        if (l != null) {
+            return ResponseResult.success(l);
+        }
 //        log.info("dish={}",dish.toString());
         QueryWrapper<Dish> wrapper = new QueryWrapper<>();
         wrapper.eq(dish.getCategoryId() != null, "category_id", dish.getCategoryId());
         wrapper.eq("status", 1);
         wrapper.orderByAsc("sort").orderByDesc("update_time");
         List<Dish> list = dishService.list(wrapper);
-        List<DishVo> l = new ArrayList<>();
-        list.stream().forEach(item -> {
-            QueryWrapper<DishFlavor> w=new QueryWrapper<>();
-            w.eq("dish_id",item.getId());
+
+        l = list.stream().map(item -> {
+            QueryWrapper<DishFlavor> w = new QueryWrapper<>();
+            w.eq("dish_id", item.getId());
             List<DishFlavor> list1 = dishFlavorService.list(w);
-            DishVo dishVo=new DishVo();
-            BeanUtils.copyProperties(item,dishVo);
+            DishVo dishVo = new DishVo();
+            BeanUtils.copyProperties(item, dishVo);
             dishVo.setFlavors(list1);
-            l.add(dishVo);
-        });
+            return dishVo;
+        }).collect(Collectors.toList());
+        redisTemplate.opsForValue().set(key,l,60, TimeUnit.MINUTES);
         return ResponseResult.success(l);
     }
 
